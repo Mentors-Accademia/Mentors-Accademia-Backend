@@ -107,6 +107,37 @@ router.post("/signup", async (req, res) => {
 })
 
 // create default user
+const defaultUser = async () => {
+    try {
+        const defaultEmail = "mentorsacademia@gmail.com"
+        const defaultName = "Mentors Admin"
+        const defaultPassword = "Mentors@@345"
+
+        const checkDefaultEmail = await signUp.findOne({ email: defaultEmail })
+
+        if (checkDefaultEmail) {
+            return;
+        }
+
+        if (!checkDefaultEmail) {
+            const hashPassword = await bcrypt.hash(defaultPassword, 10);
+
+            const defaultUser = await signUp.create({
+                name: defaultName,
+                email: defaultEmail,
+                password: hashPassword,
+                role: "admin"
+            });
+
+            console.log("Default user created:", defaultUser);
+        }
+    } catch (error) {
+        console.log(error)
+        console.log("Erorr occured during creating default user")
+    }
+}
+
+defaultUser()
 
 //  api for login user
 router.post("/signin", async (req, res) => {
@@ -446,7 +477,7 @@ router.put("/updateschool/:id", async (req, res) => {
 router.delete("/deleteschool/:id", async (req, res) => {
     try {
         const schoolId = await School.findByIdAndDelete(req.params.id)
-        if (!teacherId) {
+        if (!schoolId) {
             res.status(400).json({ message: "course not exists" })
         }
         res.json({ message: "course deleted successfully" })
