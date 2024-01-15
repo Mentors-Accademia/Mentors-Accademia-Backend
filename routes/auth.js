@@ -6,28 +6,6 @@ const Course = require("../Schema/Course")
 const Teacher = require("../Schema/Teacher")
 const School = require("../Schema/School")
 const bcrypt = require("bcrypt")
-const multer = require("multer");
-const path = require("path");
-const fs = require("fs");
-
-const uploadDirectory = path.join(__dirname, "uploads");
-
-// Create the uploads directory if it doesn't exist
-if (!fs.existsSync(uploadDirectory)) {
-    fs.mkdirSync(uploadDirectory, { recursive: true });
-}
-
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, uploadDirectory);
-    },
-    filename: (req, file, cb) => {
-        const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1E9);
-        cb(null, file.fieldname + "-" + uniqueSuffix + "." + file.mimetype.split("/")[1]);
-    }
-});
-
-const upload = multer({ storage: storage });
 
 // Api for creating Role
 router.post("/addRole", async (req, res) => {
@@ -211,17 +189,15 @@ router.get("/getuser/:id", async (req, res) => {
 })
 
 // add course
-router.post("/addcourse", upload.single("image"), async (req, res) => {
+router.post("/addcourse", async (req, res) => {
     try {
         const { title, duration, level, description } = req.body;
-        const image = req.file ? req.file.filename : null;
 
         const newCourse = await Course.create({
             title,
             duration,
             level,
             description,
-            image
         });
 
         res.json(newCourse);

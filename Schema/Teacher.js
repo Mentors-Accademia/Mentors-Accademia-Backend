@@ -28,9 +28,6 @@ const teacherSchema = new Schema({
     description:{
         type: String,
         require: true
-    },
-    image:{
-        type: String
     }
 })
 

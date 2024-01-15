@@ -24,9 +24,6 @@ const schoolSchema = new Schema({
     },
     website:{
         type: String
-    },
-    image:{
-        type: String
     }
 })
 
