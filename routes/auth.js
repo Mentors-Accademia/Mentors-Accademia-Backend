@@ -10,25 +10,6 @@ const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
 
-const uploadDirectory = path.join(__dirname, "uploads");
-
-// Create the uploads directory if it doesn't exist
-if (!fs.existsSync(uploadDirectory)) {
-    fs.mkdirSync(uploadDirectory, { recursive: true });
-}
-
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, uploadDirectory);
-    },
-    filename: (req, file, cb) => {
-        const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1E9);
-        cb(null, file.fieldname + "-" + uniqueSuffix + "." + file.mimetype.split("/")[1]);
-    }
-});
-
-const upload = multer({ storage: storage });
-
 // Api for creating Role
 router.post("/addRole", async (req, res) => {
     try {
@@ -211,93 +192,7 @@ router.get("/getuser/:id", async (req, res) => {
 })
 
 // add course
-router.post("/addcourse", upload.single("image"), async (req, res) => {
-    try {
-        const { title, duration, level, description } = req.body;
-        const image = req.file ? req.file.filename : null;
 
-        const newCourse = await Course.create({
-            title,
-            duration,
-            level,
-            description,
-            image
-        });
-
-        res.json(newCourse);
-    } catch (error) {
-        console.log(error);
-        res.status(500).send("Internal server error occurred");
-    }
-});
-
-// get all courses
-router.get("/getAllCourses", async (req, res) => {
-    try {
-        const allCourses = await Course.find()
-        res.json(allCourses)
-    } catch (error) {
-        console.log(error)
-        res.status(500).send("internal server error occured")
-    }
-})
-// get course throgh id
-router.get("/getcourse/:id", async (req, res) => {
-    try {
-        const courseId = await Course.findById(req.params.id)
-        if (!courseId) {
-            res.status(400).json({ message: "course not exists" })
-        }
-        res.json(courseId)
-    } catch (error) {
-        console.log(error)
-        res.send("internal server error occured")
-    }
-})
-// update course throgh id
-router.put("/updatecourse/:id", async (req, res) => {
-    try {
-        const { title, duration, level, description } = req.body
-
-        const newCourse = ({})
-        if (title) {
-            newCourse.title = title
-        }
-        if (duration) {
-            newCourse.duration = duration
-        }
-        if (level) {
-            newCourse.level = level
-        }
-        if (description) {
-            newCourse.description = description
-        }
-
-        let courseId = await Course.findById(req.params.id)
-        if (!courseId) {
-            res.status(400).json({ message: "course not exists" })
-        }
-
-        courseId = await Course.findByIdAndUpdate(req.params.id, { $set: newCourse }, { new: true })
-        res.json(courseId)
-    } catch (error) {
-        console.log(error)
-        res.send("internal server error occured")
-    }
-})
-// delete course throgh id
-router.delete("/deletecourse/:id", async (req, res) => {
-    try {
-        const courseId = await Course.findByIdAndDelete(req.params.id)
-        if (!courseId) {
-            res.status(400).json({ message: "course not exists" })
-        }
-        res.json({ message: "course deleted successfully" })
-    } catch (error) {
-        console.log(error)
-        res.send("internal server error occured")
-    }
-})
 
 // add teacher
 router.post("/addteacher", async (req, res) => {
