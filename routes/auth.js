@@ -6,6 +6,28 @@ const Course = require("../Schema/Course")
 const Teacher = require("../Schema/Teacher")
 const School = require("../Schema/School")
 const bcrypt = require("bcrypt")
+const multer = require("multer");
+const path = require("path");
+const fs = require("fs");
+
+const uploadDirectory = path.join(__dirname, "uploads");
+
+// Create the uploads directory if it doesn't exist
+if (!fs.existsSync(uploadDirectory)) {
+    fs.mkdirSync(uploadDirectory, { recursive: true });
+}
+
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, uploadDirectory);
+    },
+    filename: (req, file, cb) => {
+        const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1E9);
+        cb(null, file.fieldname + "-" + uniqueSuffix + "." + file.mimetype.split("/")[1]);
+    }
+});
+
+const upload = multer({ storage: storage });
 
 // Api for creating Role
 router.post("/addRole", async (req, res) => {
@@ -85,37 +107,6 @@ router.post("/signup", async (req, res) => {
 })
 
 // create default user
-const defaultUser = async () => {
-    try {
-        const defaultEmail = "mentorsacademia@gmail.com"
-        const defaultName = "Mentors Admin"
-        const defaultPassword = "Mentors@@345"
-
-        const checkDefaultEmail = await signUp.findOne({ email: defaultEmail })
-
-        if (checkDefaultEmail) {
-            return;
-        }
-
-        if (!checkDefaultEmail) {
-            const hashPassword = await bcrypt.hash(defaultPassword, 10);
-
-            const defaultUser = await signUp.create({
-                name: defaultName,
-                email: defaultEmail,
-                password: hashPassword,
-                role: "admin"
-            });
-
-            console.log("Default user created:", defaultUser);
-        }
-    } catch (error) {
-        console.log(error)
-        console.log("Erorr occured during creating default user")
-    }
-}
-
-defaultUser()
 
 //  api for login user
 router.post("/signin", async (req, res) => {
@@ -189,15 +180,17 @@ router.get("/getuser/:id", async (req, res) => {
 })
 
 // add course
-router.post("/addcourse", async (req, res) => {
+router.post("/addcourse", upload.single("image"), async (req, res) => {
     try {
         const { title, duration, level, description } = req.body;
+        const image = req.file ? req.file.filename : null;
 
         const newCourse = await Course.create({
             title,
             duration,
             level,
             description,
+            image
         });
 
         res.json(newCourse);
